@@ -60,5 +60,4 @@ int main()
 	cout << "CPU ID : " << id << endl;
 
 	t3.join();
-
 }
