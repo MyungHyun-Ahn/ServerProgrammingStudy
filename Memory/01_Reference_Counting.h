@@ -35,7 +35,7 @@ public:
     // 아토믹 변수로 refCount를 선언해야함
     int32 AddRef() { return ++_refCount; }
 
-    int32 ReleasRef()
+    int32 ReleaseRef()
     {
         int32 refCount = --_refCount;
         // Count가 0이 되면 메모리 할당 해제
@@ -98,7 +98,7 @@ public:
         return *this;
     }
 
-    TSharedPtr& operator=(const TSharedPtr&& rhs)
+    TSharedPtr& operator=(TSharedPtr&& rhs)
     {
         Release();
         _ptr = rhs._ptr;
