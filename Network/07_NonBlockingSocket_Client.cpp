@@ -62,9 +62,9 @@ int main()
 			// htos 함수는 2바이트 길이인 port 번호를 변환할 때 사용함.
 			// 여기서 놓친 점
 			// * port 번호는 0~65535(2바이트)까지 사용 가능
-			cout << ::WSAGetLastError() << endl;
-			system("pause");
-			return 0;
+			// 연산이 이미 실행 중인 상황
+			if (::WSAGetLastError() == WSAEALREADY)
+				continue;
 		}
 	}
 
