@@ -11,3 +11,30 @@ Overlapped Model
 - 비동기(Asynchronous)   : 동시에 일어나지 않은, 당장 실행하지 않고 나중에 실행해도 됨 -> 다른 쓰레드가 개입 X
 
 -> Overlapped Model을 구현하며 사용할 send, recv 함수는 비동기 방식의 함수
+
+Select 모델
+ - 장점 : 윈도우 / 리눅스 공통으로 사용 가능 - 안드로이드에서 서버를 사용할 때는 Windows 진영의 함수 사용 불가
+ - 단점 : 성능 최하 (매번 등록 비용), 최대 64개 제한
+
+WSAAsyncSelect 모델
+ - 소켓 이벤트를 윈도우 메시지 형태로 처리 (일반 윈도우 메시지랑 같이 처리하니 성능 안 좋음)
+
+WSAEventSelect 모델
+ - 장점 : 비교적 뛰어난 성능
+ - 단점 : 64개 제한
+
+Overlapped (이벤트 기반) 모델
+ - 장점 : 성능
+ - 단점 : 64개 제한
+
+Overlapped (콜백 기반) 모델
+ - 장점 : 성능
+ - 단점 : 모든 비동기 소켓 함수에서 사용 가능하진 않음 (accept), 빈번한 Alertable Wait로 인한 성능 저하(APC 큐)
+
+IOCP
+ - TODO
+
+
+참고
+Reactor Pattern : 뒤늦게 논블로킹 소켓. 소켓 상태 확인 후 -> 뒤늦게 recv send 호출
+Proactor Pattern : 미리 Overlapped WSA
