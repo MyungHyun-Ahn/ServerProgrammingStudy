@@ -121,9 +121,9 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	
 	session->SetNetAddress(NetAddress(sockAddress));
 	 
-	cout << "Client Connected!" << endl;
 
 	// TODO : 세션 접속 처리
+	session->ProcessConnect();
 
 	// 다시 Accept를 걸어준다.
 	RegisterAccept(acceptEvent);
