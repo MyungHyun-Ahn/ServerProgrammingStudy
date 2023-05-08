@@ -39,6 +39,11 @@ void Session::Send(BYTE* buffer, int32 len)
 
 void Session::Send(SendBufferRef sendBuffer)
 {
+	if (IsConnected() == false)
+		return;
+
+	bool registerSend = false;
+
 	// 현재 RegisterSend가 걸리지 않은 상태라면 걸어준다.
 	WRITE_LOCK;
 
@@ -52,7 +57,17 @@ void Session::Send(SendBufferRef sendBuffer)
 	}
 	*/
 
-	if (_sendRegistered.exchange(true) == false)
+	// 락을 오래 잡고 있는 문제를 해결
+	{
+		WRITE_LOCK;
+
+		_sendQueue.push(sendBuffer);
+
+		if (_sendRegistered.exchange(true) == false)
+			registerSend = true;
+	}
+
+	if (registerSend)
 		RegisterSend();
 
 }
@@ -72,14 +87,6 @@ void Session::Disconnect(const WCHAR* cause)
 	
 	// TEMP
 	wcout << "Disconnect : " << cause << endl;
-
-	OnDisconnected(); // 컨텐츠 코드에서 재정의
-
-	// 소켓을 강제로 닫아줌 -> 비동기 방식으로 변경 DisconnectEx
-	// 장점 : 소켓을 만드는 작업 -> 부담이 있음 -> 소켓을 재사용하는 경우가 있음 
-	//			-> 연결을 끊어주되 재사용 가능하게 만들 수 있음
-	// SocketUtils::Close(_socket);
-	GetService()->ReleaseSession(GetSessionRef());
 
 	RegisterDisonnect();
 }
@@ -236,6 +243,7 @@ void Session::RegisterSend()
 		int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
+			// 연결을 갑자기 끊을 때 여기로 진입
 			HandleError(errorCode);
 			_sendEvent.owner = nullptr; // RELEASE_REF
 			_sendEvent.sendBuffers.clear(); // RELEASE_REF
@@ -263,6 +271,14 @@ void Session::ProcessConnect()
 void Session::ProcessDisconnect()
 {
 	_disconnectEvent.owner = nullptr;
+
+	OnDisconnected(); // 컨텐츠 코드에서 재정의
+
+	// 소켓을 강제로 닫아줌 -> 비동기 방식으로 변경 DisconnectEx
+	// 장점 : 소켓을 만드는 작업 -> 부담이 있음 -> 소켓을 재사용하는 경우가 있음 
+	//			-> 연결을 끊어주되 재사용 가능하게 만들 수 있음
+	// SocketUtils::Close(_socket);
+	GetService()->ReleaseSession(GetSessionRef());
 }
 
 void Session::ProcessRecv(int32 numOfBytes)
@@ -335,4 +351,47 @@ void Session::HandleError(int32 errorCode)
 
 		break;
 	}
+}
+
+
+/*-------------------
+	PacketSession
+-------------------*/
+
+PacketSession::PacketSession()
+{
+}
+
+PacketSession::~PacketSession()
+{
+}
+
+
+// [size(2)][id(2)][data...] [size(2)][id(2)][data...] [size(2)][id(2)][data...] ...
+// TCP 통신으로 데이터가 넘어왔을 때 호출, 버퍼의 시작 위치랑 길이를 받음
+int32 PacketSession::OnRecv(BYTE* buffer, int32 len)
+{
+	int32 processLen = 0;
+
+	while (true)
+	{
+		int32 dataSize = len - processLen;
+		// 최소한 헤더는 파싱할 수 있어야 한다.
+		if (dataSize < sizeof(PacketHeader)) // 헤더보다 데이터 크기가 작은 경우
+			break;
+
+		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&buffer[processLen]));
+		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다.
+		if (dataSize < header.size)
+			break;
+
+		// 패킷 조립 성공
+		OnRecvPacket(&buffer[processLen], header.size);
+
+		// 다음 패킷으로 넘어감
+		processLen += header.size;
+
+	}
+
+	return processLen;
 }

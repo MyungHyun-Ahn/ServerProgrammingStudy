@@ -38,12 +38,12 @@ public:
 
 public:
 	/* 정보 관련 */
-	void SetNetAddress(NetAddress address) { _netAddress = address; }
-	NetAddress GetNetAddress() { return _netAddress; }
+	void            SetNetAddress(NetAddress address) { _netAddress = address; }
+	NetAddress      GetNetAddress() { return _netAddress; }
 
-	SOCKET GetSocket() { return _socket; }
-	bool IsConnected() { return _connected; }
-	SessionRef GetSessionRef() { return static_pointer_cast<Session>(shared_from_this()); }
+	SOCKET          GetSocket() { return _socket; }
+	bool            IsConnected() { return _connected; }
+	SessionRef      GetSessionRef() { return static_pointer_cast<Session>(shared_from_this()); }
 
 private:
 	/* 인터페이스 구현 */
@@ -102,3 +102,32 @@ private:
 	SendEvent           _sendEvent;
 };
 
+
+/*-------------------
+	PacketSession
+-------------------*/
+
+// 프로토콜 정의
+
+// 정석적인 방법
+struct PacketHeader
+{
+	uint16 size;
+	uint16 id; // 프로토콜 아이디 (ex : 1 = 로그인, 2 = 이동요청)
+};
+
+// [size(2)][id(2)][data...] [size(2)][id(2)][data...] [size(2)][id(2)][data...] ...
+// 헤더를 먼저 처리
+
+class PacketSession : public Session
+{
+public:
+	PacketSession();
+	virtual ~PacketSession();
+
+	PacketSessionRef GetPacketSessionRef() { return static_pointer_cast<PacketSession>(shared_from_this()); }
+
+protected:
+	virtual int32   OnRecv(BYTE* buffer, int32 len) sealed; // 사용할 수 없게 만듬
+	virtual int32   OnRecvPacket(BYTE* buffer, int32 len) abstract; // 반드시 구현
+};

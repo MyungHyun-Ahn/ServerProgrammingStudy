@@ -31,8 +31,6 @@ void SendBuffer::Close(uint32 writeSize)
 
 SendBufferChunk::SendBufferChunk()
 {
-    _open = false;
-    _usedSize = 0; // 처음부터 사용하겠다는 의미
 }
 
 SendBufferChunk::~SendBufferChunk()
@@ -41,6 +39,8 @@ SendBufferChunk::~SendBufferChunk()
 
 void SendBufferChunk::Reset()
 {
+	_open = false;
+	_usedSize = 0; // 처음부터 사용하겠다는 의미
 }
 
 SendBufferRef SendBufferChunk::Open(uint32 allocSize)
@@ -98,6 +98,7 @@ SendBufferRef SendBufferManager::Open(uint32 size)
 // 풀에서 메모리를 꺼내 쓰겠다는 의미
 SendBufferChunkRef SendBufferManager::Pop()
 {
+    cout << "Pop SENDBUFFERCHUNK" << endl;
     WRITE_LOCK;
     if (_sendBufferChunks.empty() == false)
     {
@@ -118,5 +119,6 @@ void SendBufferManager::Push(SendBufferChunkRef buffer)
 
 void SendBufferManager::PushGlobal(SendBufferChunk* buffer)
 {
+    cout << "PushGlobal SENDBUFFERCHUNK" << endl;
     GSendBufferManager->Push(SendBufferChunkRef(buffer, PushGlobal));
 }
