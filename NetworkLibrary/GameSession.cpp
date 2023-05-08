@@ -17,12 +17,14 @@ int32 GameSession::OnRecv(BYTE* buffer, int32 len)
 	// Echo
 	cout << "OnRecv Len : " << len << endl;
 
-	SendBufferRef sendBuffer = MakeShared<SendBuffer>(4096);
-	sendBuffer->CopyData(buffer, len);
+	// 버퍼를 크게 할당 받음
+	SendBufferRef sendBuffer = GSendBufferManager->Open(4096);
+	::memcpy(sendBuffer->Buffer(), buffer, len);
+	// 그 중 len 만큼만 사용
+	sendBuffer->Close(len);
 	
 	// Broadcast - 모두에게 알려서 똑같은 화면을 볼 수 있게 만듬
-	for (int32 i = 0; i < 5; i++)
-		GSessionManager.Broadcast(sendBuffer);
+	GSessionManager.Broadcast(sendBuffer);
 
 	return len;
 }
