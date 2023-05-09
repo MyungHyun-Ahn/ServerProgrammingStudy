@@ -5,6 +5,7 @@
 #include "Session.h"
 #include "GameSession.h"
 #include "GameSessionManager.h"
+#include "BufferWriter.h"
 
 
 int main()
@@ -34,16 +35,21 @@ int main()
 	{
 		// 버퍼를 크게 할당 받음
 		SendBufferRef sendBuffer = GSendBufferManager->Open(4096);
-		BYTE* buffer = sendBuffer->Buffer();
+
+		BufferWriter bw(sendBuffer->Buffer(), sendBuffer->AllocSIze());
+
+		// 헤더의 포인터를 반환
+		PacketHeader* header = bw.Reserve<PacketHeader>();
+
+		// id(uint64), 체력(uint32), 공격력(uint16)
+		bw << (uint64)1001 << (uint32)100 << (uint16)10; // 데이터를 밀어넣기
+		bw.Write(sendData, sizeof(sendData)); // 데이터를 전부 쓰기
 
 		// 사이즈를 잘못 기입하면 어떤 문제가 생길까?
-		((PacketHeader*)buffer)->size = (sizeof(sendData) + sizeof(PacketHeader));
-		((PacketHeader*)buffer)->id = 1; // 1 : Hello Msg
+		header->size = bw.WriteSize();
+		header->id = 1; // 1 : Test Msgs
 
-		// 4번 위치부터 기입
-		::memcpy(&buffer[4], sendData, sizeof(sendData));
-		cout << &buffer[4] << endl;
-		sendBuffer->Close((sizeof(sendData) + sizeof(PacketHeader)));
+		sendBuffer->Close(bw.WriteSize());
 
 		// Broadcast - 모두에게 알려서 똑같은 화면을 볼 수 있게 만듬
 		GSessionManager.Broadcast(sendBuffer);
