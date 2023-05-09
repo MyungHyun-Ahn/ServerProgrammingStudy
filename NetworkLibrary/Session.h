@@ -129,5 +129,5 @@ public:
 
 protected:
 	virtual int32   OnRecv(BYTE* buffer, int32 len) sealed; // 사용할 수 없게 만듬
-	virtual int32   OnRecvPacket(BYTE* buffer, int32 len) abstract; // 반드시 구현
+	virtual void    OnRecvPacket(BYTE* buffer, int32 len) abstract; // 반드시 구현
 };

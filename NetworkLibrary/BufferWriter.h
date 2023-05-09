@@ -24,8 +24,9 @@ public:
 	T*				Reserve();
 
 	// 데이터를 밀어 넣을 때 사용
-	template<typename T>
-	BufferWriter&		 operator<<(const T& src); 
+	// && 오른값 참조에 템플릿을 붙이는 순간 보편 참조가 됨 . 모든 것을 받아줌
+	// 보편 참조 -> 왼값 const T&
+	//           -> 오른값 T&&
 	template<typename T>
 	BufferWriter&        operator<<(T&& src);
 
@@ -47,17 +48,10 @@ T* BufferWriter::Reserve()
 }
 
 template<typename T>
-BufferWriter& BufferWriter::operator<<(const T& src)
-{
-	*reinterpret_cast<T*>(&_buffer[_pos]) = src;
-	_pos += sizeof(T);
-	return *this;
-}
-
-template<typename T>
 BufferWriter& BufferWriter::operator<<(T&& src)
 {
-	*reinterpret_cast<T*>(&_buffer[_pos]) = std::move(src);
+	using DataType = std::remove_reference_t<T>;
+	*reinterpret_cast<DataType*>(&_buffer[_pos]) = std::forward<DataType>(src);
 	_pos += sizeof(T);
 	return *this;
 }

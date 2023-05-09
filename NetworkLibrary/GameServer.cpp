@@ -6,6 +6,7 @@
 #include "GameSession.h"
 #include "GameSessionManager.h"
 #include "BufferWriter.h"
+#include "ServerPacketHandler.h"
 
 
 int main()
@@ -33,23 +34,9 @@ int main()
 
 	while (true)
 	{
+		vector<BuffData> buffs{ BuffData {100, 1.5f}, BuffData {200, 2.3f}, BuffData {300, 0.7f} };
 		// 버퍼를 크게 할당 받음
-		SendBufferRef sendBuffer = GSendBufferManager->Open(4096);
-
-		BufferWriter bw(sendBuffer->Buffer(), sendBuffer->AllocSIze());
-
-		// 헤더의 포인터를 반환
-		PacketHeader* header = bw.Reserve<PacketHeader>();
-
-		// id(uint64), 체력(uint32), 공격력(uint16)
-		bw << (uint64)1001 << (uint32)100 << (uint16)10; // 데이터를 밀어넣기
-		bw.Write(sendData, sizeof(sendData)); // 데이터를 전부 쓰기
-
-		// 사이즈를 잘못 기입하면 어떤 문제가 생길까?
-		header->size = bw.WriteSize();
-		header->id = 1; // 1 : Test Msgs
-
-		sendBuffer->Close(bw.WriteSize());
+		SendBufferRef sendBuffer = ServerPacketHandler::Make_S_TEST(1001, 100, 10, buffs);
 
 		// Broadcast - 모두에게 알려서 똑같은 화면을 볼 수 있게 만듬
 		GSessionManager.Broadcast(sendBuffer);
