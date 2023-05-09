@@ -23,7 +23,7 @@ void ServerPacketHandler::HandlePacket(BYTE* buffer, int32 len)
 	}
 }
 
-SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 attack, vector<BuffData> buffs)
+SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 attack, vector<BuffData> buffs, wstring name)
 {
 
 	SendBufferRef sendBuffer = GSendBufferManager->Open(4096);
@@ -43,6 +43,9 @@ SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 atta
 	{
 		bw << buff.buffId << buff.remainTime;
 	}
+
+	bw << (uint16)name.size(); // NULL 바이트는 포함 안됨
+	bw.Write((void*)name.data(), name.size() * sizeof(WCHAR)); // size (개수) * WCHAR (2바이트)
 
 	// 사이즈를 잘못 기입하면 어떤 문제가 생길까?
 	header->size = bw.WriteSize();

@@ -1,0 +1,22 @@
+UNICODE & ENCODING
+
+문자 (Character)
+ - 데이터는 전기 신호로 0과 1로 표현됨
+ - 그런데 문자 표현이 필요했음. -> ASCII Code
+ - ASCII (0~127) 1 BYTE로 표현
+ - 숫자 <-> 문자 : 다양한 국가의 문자를 표현하기에는 128개로는 부족
+ - UNICODE : 2 BYTE (65535) 정도면 충분하지 않을까?
+ - 국가 별로 영역을 지정하여 문자와 숫자를 매핑
+
+문자 집합 (Character Set) vs 인코딩 (Encoding)
+ - 문자 집합 : ASCII, Unicode
+ - 인코딩 : 압축하는 방식 ex) ZIP, tar.gz 여러가지 방법으로 압축, 일종의 압축 알고리즘
+
+CP949 vs UTF-8 vs UTF-16
+ - UTF-8: Unicode 문자 집합 + 인코딩 방식, 영문 : 1바이트, 한글 : 3바이트
+ - UTF-16 : Unicode 문자 집합 + 인코딩 방식, 영문, 한글 모두 2바이트
+ - CP949 : Code Page의 약자, 인코딩 방식, 문자 집합 2개를 병렬 사용, Unicode 사용 안함
+
+MBCS (Multi Byte Character Set) vs WBCS (Wide Byte Character Set)
+ - MBCS : char, 개별 문자를 다수의 바이트로 표현한 문자 셋 / C++
+ - WBCS : wchar, 유니코드 기반의 character set (Windows 기준 = utf-16) / C#

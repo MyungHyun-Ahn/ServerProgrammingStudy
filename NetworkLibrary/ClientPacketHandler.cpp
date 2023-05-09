@@ -46,7 +46,9 @@ struct S_TEST
 	// 1) 문자열 ex) name
 	// 2) 그냥 바이트 배열 ex) 길드 이미지
 	// 3) 일반 리스트
-	Vector<BuffData> buffs;
+	vector<BuffData> buffs;
+
+	wstring name;
 };
 
 void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
@@ -69,6 +71,7 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 
 	vector<BuffData> buffs;
 
+
 	// buffCount를 신뢰할 수 없음
 	// 나중에는 이것을 체크할 방법을 구현해야함
 	uint16 buffCount;
@@ -85,4 +88,13 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 	{
 		cout << "BuffInfo : " << buffs[i].buffId << " " << buffs[i].remainTime << endl;
 	}
+
+	wstring name;
+	uint16 nameLen;
+	br >> nameLen;
+	name.resize(nameLen);
+	br.Read((void*)name.data(), nameLen * sizeof(WCHAR));
+
+	wcout.imbue(std::locale("kor")); // 이 코드를 빼면 한글 출력 안됨
+	wcout << name << endl;
 }
