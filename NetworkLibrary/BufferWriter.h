@@ -21,7 +21,7 @@ public:
 	bool			Write(void* src, uint32 len);
 
 	template<typename T>
-	T*				Reserve();
+	T*				Reserve(uint16 count = 1);
 
 	// 데이터를 밀어 넣을 때 사용
 	// && 오른값 참조에 템플릿을 붙이는 순간 보편 참조가 됨 . 모든 것을 받아줌
@@ -37,13 +37,13 @@ private:
 };
 
 template<typename T>
-T* BufferWriter::Reserve()
+T* BufferWriter::Reserve(uint16 count)
 {
-	if (FreeSize() < sizeof(T))
+	if (FreeSize() < (sizeof(T) * count))
 		return nullptr;
 
 	T* ret = reinterpret_cast<T*>(&_buffer[_pos]);
-	_pos += sizeof(T);
+	_pos += (sizeof(T) * count);
 	return ret;
 }
 

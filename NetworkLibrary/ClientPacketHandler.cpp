@@ -28,14 +28,27 @@ void ClientPacketHandler::HandlePacket(BYTE* buffer, int32 len)
 
 #pragma pack(1)
 // 패킷 설계 TEMP
-// [ PKT_S_TEST ] [ BuffListItem BuffListItem BuffListItem ] [      ] [        ]
+// [ PKT_S_TEST ] [ BuffListItem BuffListItem BuffListItem ] [ victim victim ] [ victim victim ]
 struct PKT_S_TEST
 {
-	struct BuffListItem
+	struct BuffsListItem
 	{
 		uint64 buffId;
 		float remainTime;
+
+		uint16 victimsOffset;
+		uint16 victimsCount;
+
+		bool Validate(BYTE* packetStart, uint16 packetSize, OUT uint32& size)
+		{
+			if (victimsOffset + victimsCount * sizeof(uint64) > packetSize)
+				return false;
+
+			size += victimsCount * sizeof(uint64);
+			return true;
+		}
 	};
+
 	uint16 packetSize; // 공용 헤더
 	uint16 packetId;   // 공용 헤더
 	uint64 id;     // 8
@@ -69,23 +82,41 @@ struct PKT_S_TEST
 		if (packetSize < size)
 			return false;
 
-		size += buffsCount * sizeof(BuffListItem);
-		if (size != packetSize)
+		if (buffsOffset + buffsCount * sizeof(BuffsListItem) > packetSize)
 			return false;
 
-		if (buffsOffset + buffsCount * sizeof(BuffListItem) > packetSize)
+		// Buffers 가변 데이터 크기 추가
+		size += buffsCount * sizeof(BuffsListItem);
+
+		BuffsList buffList = GetBuffsList();
+		for (int32 i = 0; i < buffList.Count(); i++)
+		{
+			if (buffList[i].Validate((BYTE*)this, packetSize, OUT size) == false)
+				return false;
+		}
+
+		// 최종 패킷 비교
+		if (size != packetSize)
 			return false;
 	}
 	// vector<BuffData> buffs;
 	// wstring name;
 
-	using BuffsList = PacketList<PKT_S_TEST::BuffListItem>;
+	using BuffsList = PacketList<PKT_S_TEST::BuffsListItem>;
+	using BuffsVictimsList = PacketList<uint64>;
 
 	BuffsList GetBuffsList()
 	{
 		BYTE* data = reinterpret_cast<BYTE*>(this);
 		data += buffsOffset;
-		return BuffsList(reinterpret_cast<PKT_S_TEST::BuffListItem*>(data), buffsCount);
+		return BuffsList(reinterpret_cast<PKT_S_TEST::BuffsListItem*>(data), buffsCount);
+	}
+
+	BuffsVictimsList GetBuffsVictimList(BuffsListItem* buffsItem)
+	{
+		BYTE* data = reinterpret_cast<BYTE*>(this);
+		data += buffsItem->victimsOffset;
+		return BuffsVictimsList(reinterpret_cast<uint64*>(data), buffsItem->victimsCount);
 	}
 };
 #pragma pack()
@@ -132,6 +163,8 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 	PKT_S_TEST::BuffsList buffs = pkt->GetBuffsList();
 
 	cout << "BuffCount : " << buffs.Count() << endl;
+
+	/*
 	for (int32 i = 0; i < buffs.Count(); i++)
 	{
 		cout << "BuffInfo : " << buffs[i].buffId << " " << buffs[i].remainTime << endl;
@@ -142,11 +175,19 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 	{
 		cout << "Iterator BuffInfo : " << it->buffId << " " << it->remainTime << endl;
 	}
-
+	*/
 	// ranged-base
 	for (auto& buff : buffs)
 	{
-		cout << "Ranged-Base BuffInfo : " << buff.buffId << " " << buff.remainTime << endl;
+		cout << "BuffInfo : " << buff.buffId << " " << buff.remainTime << endl;
+
+		PKT_S_TEST::BuffsVictimsList victims = pkt->GetBuffsVictimList(&buff);
+		cout << "Victim Count : " << victims.Count() << endl;
+
+		for (auto& victim : victims)
+		{
+			cout << "Victim : " << victim << endl;
+		}
 	}
 
 	// 문자열은 나중에 처리
