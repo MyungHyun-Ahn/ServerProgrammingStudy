@@ -36,16 +36,27 @@ SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 atta
 	// id(uint64), 체력(uint32), 공격력(uint16)
 	bw << id << hp << attack; // 데이터를 밀어넣기
 
+	struct ListHeader
+	{
+		uint16 offset;
+		uint16 count;
+	};
 	// 가변 데이터
-	bw << (uint16)buffs.size();
+	ListHeader* buffsHeader = bw.Reserve<ListHeader>();
+
+	// offset의 값은 지금까지 쓴 바이트 개수 만큼
+	buffsHeader->offset = bw.WriteSize();
+	buffsHeader->count = buffs.size();
 
 	for (BuffData& buff : buffs)
 	{
 		bw << buff.buffId << buff.remainTime;
 	}
 
+	/*
 	bw << (uint16)name.size(); // NULL 바이트는 포함 안됨
 	bw.Write((void*)name.data(), name.size() * sizeof(WCHAR)); // size (개수) * WCHAR (2바이트)
+	*/
 
 	// 사이즈를 잘못 기입하면 어떤 문제가 생길까?
 	header->size = bw.WriteSize();
