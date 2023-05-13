@@ -8,6 +8,7 @@
 #include "BufferWriter.h"
 #include "ServerPacketHandler.h"
 #include <tchar.h>
+#include "Protocol.pb.h"
 
 /*
 // 순서가 꼬여있다면?
@@ -83,35 +84,27 @@ int main()
 
 	while (true)
 	{
-		PKT_S_TEST_WRITE pktWriter(1001, 100, 10);
+		Protocol::S_TEST pkt;
+		pkt.set_id(1000);
+		pkt.set_hp(100);
+		pkt.set_attack(10);
 
-		// 처음부터 버퍼의 크기를 정해서 사용하는 것이 아쉽다.
-		PKT_S_TEST_WRITE::BuffsList buffList = pktWriter.ReserveBuffsList(3);
-		buffList[0] = { 100, 1.5f };
-		buffList[1] = { 200, 2.3f };
-		buffList[2] = { 300, 0.7f };
-
-		// 매 영역마다 집어서 지정해주어야 함
-		// -> 실수의 여지가 크다
-		PKT_S_TEST_WRITE::BuffsVictimsList vic0 = pktWriter.ReserveBuffsVictimsList(&buffList[0], 3);
 		{
-			vic0[0] = 1000;
-			vic0[1] = 2000;
-			vic0[2] = 3000;
+			Protocol::BuffData* data = pkt.add_buffs();
+			data->set_buffid(100);
+			data->set_remaintime(1.2f);
+			data->add_victims(4000);
 		}
 
-		PKT_S_TEST_WRITE::BuffsVictimsList vic1 = pktWriter.ReserveBuffsVictimsList(&buffList[1], 1);
 		{
-			vic1[0] = 1000;
+			Protocol::BuffData* data = pkt.add_buffs();
+			data->set_buffid(200);
+			data->set_remaintime(2.5f);
+			data->add_victims(1000);
+			data->add_victims(2000);
 		}
 
-		PKT_S_TEST_WRITE::BuffsVictimsList vic2 = pktWriter.ReserveBuffsVictimsList(&buffList[2], 2);
-		{
-			vic2[0] = 3000;
-			vic2[1] = 5000;
-		}
-
-		SendBufferRef sendBuffer = pktWriter.CloseAndReturn();
+		SendBufferRef sendBuffer = ServerPacketHandler::MakeSendBuffer(pkt);
 
 		// Broadcast - 모두에게 알려서 똑같은 화면을 볼 수 있게 만듬
 		GSessionManager.Broadcast(sendBuffer);

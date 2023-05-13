@@ -21,6 +21,11 @@ void ServerPacketHandler::HandlePacket(BYTE* buffer, int32 len)
 	}
 }
 
+SendBufferRef ServerPacketHandler::MakeSendBuffer(Protocol::S_TEST& pkt)
+{
+	return _MakeSendBuffer(pkt, S_TEST);
+}
+
 /*
 SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 attack, vector<BuffData> buffs, wstring name)
 {

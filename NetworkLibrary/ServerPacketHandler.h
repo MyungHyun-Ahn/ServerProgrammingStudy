@@ -1,6 +1,7 @@
 #pragma once
 #include "BufferReader.h"
 #include "BufferWriter.h"
+#include "Protocol.pb.h"
 
 /*-----------------------
    ServerPacketHandler
@@ -15,10 +16,30 @@ class ServerPacketHandler
 {
 public:
 	static void HandlePacket(BYTE* buffer, int32 len);
+	static SendBufferRef MakeSendBuffer(Protocol::S_TEST& pkt);
 
 	// static SendBufferRef Make_S_TEST(uint64 id, uint32 hp, uint16 attack, vector<BuffData> buffs, wstring name);
 };
 
+template<typename T>
+SendBufferRef _MakeSendBuffer(T& pkt, uint16 pktId)
+{
+	const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
+	const uint16 packetSize = dataSize + sizeof(PacketHeader);
+
+	SendBufferRef sendBuffer = GSendBufferManager->Open(packetSize);
+
+	PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+	header->size = packetSize;
+	header->id = pktId;
+
+	ASSERT_CRASH(pkt.SerializePartialToArray(&header[1], dataSize));
+
+	sendBuffer->Close(packetSize);
+	return sendBuffer;
+}
+
+/*
 template<typename T, typename C>
 class PacketIterator
 {
@@ -64,7 +85,9 @@ private:
 	T* _data;    // 시작 주소
 	uint16   _count;   // 데이터 개수
 };
+*/
 
+/*
 #pragma pack(1)
 // 패킷 설계 TEMP
 // [ PKT_S_TEST ] [ BuffListItem BuffListItem BuffListItem ] [ victim ] [ victim ]
@@ -149,3 +172,4 @@ private:
 	BufferWriter		_bw;
 };
 #pragma pack()
+*/

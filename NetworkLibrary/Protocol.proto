@@ -1,0 +1,18 @@
+syntax = "proto3";
+package Protocol;
+
+message BuffData
+{
+	uint64 buffId = 1;
+	float remainTime = 2;
+	repeated uint64 victims = 3;
+}
+
+// struct S_TEST 와 같은 의미
+message S_TEST
+{
+	uint64 id = 1; // 숫자는 위치를 의미 1 : 첫번째 위치
+	uint32 hp = 2;
+	uint32 attack = 3;
+	repeated BuffData buffs = 4; // 리스트 정의 repeated
+}

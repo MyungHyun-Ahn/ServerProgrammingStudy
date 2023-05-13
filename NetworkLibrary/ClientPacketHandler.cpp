@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "ClientPacketHandler.h"
 #include "BufferReader.h"
-
+#include "Protocol.pb.h"
 
 // S_ : 서버에서 클라로 보내는 경우
 // C_ : 클라에서 서버로 보내는 경우
@@ -26,6 +26,29 @@ void ClientPacketHandler::HandlePacket(BYTE* buffer, int32 len)
 	}
 }
 
+void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
+{
+	Protocol::S_TEST pkt;
+
+	ASSERT_CRASH(pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)));
+
+	cout << pkt.id() << " " << pkt.hp() << " " << pkt.attack() << endl;
+
+	cout << "BUFSIZE : " << pkt.buffs_size() << endl;
+
+	for (auto& buf : pkt.buffs())
+	{
+		cout << "BUFINFO : " << buf.buffid() << " " << buf.remaintime() << endl;
+		cout << "VICTIMS : " << buf.victims_size() << endl;
+		for (auto& vic : buf.victims())
+		{
+			cout << vic << " ";
+		}
+		cout << endl;
+	}
+}
+
+/*
 #pragma pack(1)
 // 패킷 설계 TEMP
 // [ PKT_S_TEST ] [ BuffListItem BuffListItem BuffListItem ] [ victim victim ] [ victim victim ]
@@ -120,17 +143,19 @@ struct PKT_S_TEST
 	}
 };
 #pragma pack()
+*/
 
+/*
 // [ PKT_S_TEST ] [ BuffListItem BuffListItem BuffListItem ]
 void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 {
 	BufferReader br(buffer, len);
 
-	/*
-	// 꺼내쓰지 않고 그냥 내용을 가져다 쓰는 것을 길이 체크를 하지 않아도 됨
-	if (len < sizeof(PKT_S_TEST))
-		return;
-	*/
+	
+	//// 꺼내쓰지 않고 그냥 내용을 가져다 쓰는 것을 길이 체크를 하지 않아도 됨
+	//if (len < sizeof(PKT_S_TEST))
+	//	return;
+	
 
 	// 꺼내쓰지 않고 buffer를 그냥 씀
 	// 임시 객체를 만들어서 복사한 것이 아닌 그냥 buffer의 주소에 있는 내용을 곧바로 가져다 씀
@@ -164,18 +189,18 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 
 	cout << "BuffCount : " << buffs.Count() << endl;
 
-	/*
-	for (int32 i = 0; i < buffs.Count(); i++)
-	{
-		cout << "BuffInfo : " << buffs[i].buffId << " " << buffs[i].remainTime << endl;
-	}
+	
+	//for (int32 i = 0; i < buffs.Count(); i++)
+	//{
+	//	cout << "BuffInfo : " << buffs[i].buffId << " " << buffs[i].remainTime << endl;
+	//}
 
-	// iterator
-	for (auto it = buffs.begin(); it != buffs.end(); ++it)
-	{
-		cout << "Iterator BuffInfo : " << it->buffId << " " << it->remainTime << endl;
-	}
-	*/
+	//// iterator
+	//for (auto it = buffs.begin(); it != buffs.end(); ++it)
+	//{
+	//	cout << "Iterator BuffInfo : " << it->buffId << " " << it->remainTime << endl;
+	//}
+	
 	// ranged-base
 	for (auto& buff : buffs)
 	{
@@ -191,14 +216,15 @@ void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 	}
 
 	// 문자열은 나중에 처리
-	/*
-	wstring name;
-	uint16 nameLen;
-	br >> nameLen;
-	name.resize(nameLen);
-	br.Read((void*)name.data(), nameLen * sizeof(WCHAR));
 
-	wcout.imbue(std::locale("kor")); // 이 코드를 빼면 한글 출력 안됨
-	wcout << name << endl;
-	*/
+	//wstring name;
+	//uint16 nameLen;
+	//br >> nameLen;
+	//name.resize(nameLen);
+	//br.Read((void*)name.data(), nameLen * sizeof(WCHAR));
+
+	//wcout.imbue(std::locale("kor")); // 이 코드를 빼면 한글 출력 안됨
+	//wcout << name << endl;
+
 }
+*/

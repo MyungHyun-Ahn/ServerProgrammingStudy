@@ -17,6 +17,9 @@ public:
 	static void Handle_S_TEST(BYTE* buffer, int32 len);
 };
 
+
+
+/*
 template<typename T, typename C>
 class PacketIterator
 {
@@ -62,4 +65,5 @@ private:
 	T*       _data;    // 시작 주소
 	uint16   _count;   // 데이터 개수
 };
+*/
 
