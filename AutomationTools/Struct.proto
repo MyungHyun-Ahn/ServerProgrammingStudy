@@ -1,0 +1,15 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+
+// 전송하는 패킷이 아닌 struct 형태로 관리할 파일
+
+message Player
+{
+	uint64 id = 1;
+	string name = 2;
+	PlayerType playerType = 3;
+	// TODO : 스탯 정보...
+
+}
