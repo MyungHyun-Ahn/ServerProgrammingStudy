@@ -82,37 +82,6 @@ int main()
 	TCHAR sendData4[1000] = _T("가"); // 어떤 형식으로 보낼지 모를 때 사용
 	*/
 
-	WCHAR sendData3[1000] = L"가"; // C#과 궁합이 굉장히 좋다
-
-	while (true)
-	{
-		Protocol::S_TEST pkt;
-		pkt.set_id(1000);
-		pkt.set_hp(100);
-		pkt.set_attack(10);
-
-		{
-			Protocol::BuffData* data = pkt.add_buffs();
-			data->set_buffid(100);
-			data->set_remaintime(1.2f);
-			data->add_victims(4000);
-		}
-
-		{
-			Protocol::BuffData* data = pkt.add_buffs();
-			data->set_buffid(200);
-			data->set_remaintime(2.5f);
-			data->add_victims(1000);
-			data->add_victims(2000);
-		}
-
-		SendBufferRef sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
-
-		// Broadcast - 모두에게 알려서 똑같은 화면을 볼 수 있게 만듬
-		GSessionManager.Broadcast(sendBuffer);
-
-		this_thread::sleep_for(250ms);
-	}
 
 	GThreadManager->Join();
 }

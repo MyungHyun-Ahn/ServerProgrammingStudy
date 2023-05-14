@@ -90,7 +90,7 @@ SendBufferRef SendBufferManager::Open(uint32 size)
         LSendBufferChunk->Reset(); // 초기화 코드
     }
 
-    cout << "FREE : " << LSendBufferChunk->FreeSize() << endl;
+    // cout << "FREE : " << LSendBufferChunk->FreeSize() << endl;
 
     return LSendBufferChunk->Open(size);
 }
