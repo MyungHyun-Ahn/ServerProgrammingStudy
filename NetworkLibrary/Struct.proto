@@ -1,0 +1,13 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+
+// 전송하는 패킷이 아닌 struct 형태로 관리할 파일
+
+message BuffData
+{
+	uint64 buffId = 1;
+	float remainTime = 2;
+	repeated uint64 victims = 3;
+}

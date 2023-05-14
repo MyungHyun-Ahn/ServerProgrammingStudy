@@ -15,7 +15,13 @@ void GameSession::OnDisconnected()
 
 void GameSession::OnRecvPacket(BYTE* buffer, int32 len)
 {
-	ServerPacketHandler::HandlePacket(buffer, len);
+	PacketSessionRef session = PacketSessionRef();
+	// 분산 처리할 경우 패킷 헤더를 확인해서 구분하여 전달
+	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+
+
+	// TODO : packetId 대역 체크
+	ServerPacketHandler::HandlePacket(session, buffer, len);
 }
 
 void GameSession::OnSend(int32 len)

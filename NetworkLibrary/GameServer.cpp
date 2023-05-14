@@ -54,6 +54,8 @@ int main()
 	// -> 위 문제는 개선 완료
 	*/
 
+	ServerPacketHandler::Init();
+
 	ServerServiceRef service = MakeShared<ServerService>(
 		NetAddress(L"127.0.0.1", 7777),
 		MakeShared<IocpCore>(),

@@ -5,26 +5,24 @@
    ServerPacketHandler
 -----------------------*/
 
-void ServerPacketHandler::HandlePacket(BYTE* buffer, int32 len)
+PacketHandlerFunc GPacketHandler[UINT16_MAX];
+
+// 직접 컨텐츠 작업자가 작성
+bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len)
 {
-	BufferReader br(buffer, len);
-
-	PacketHeader header;
-	br.Peek(&header);
-
-	switch (header.id)
-	{
-	case S_TEST:
-		break;
-	default:
-		break;
-	}
+	// 잘못 된 패킷이 왔을 때 헤더를 보고 로그 기록
+	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+	// TODO : Log
+	return true;
 }
 
-SendBufferRef ServerPacketHandler::MakeSendBuffer(Protocol::S_TEST& pkt)
+bool Handle_S_TEST(PacketSessionRef& session, Protocol::S_TEST& pkt)
 {
-	return _MakeSendBuffer(pkt, S_TEST);
+	// 이런저런 처리 : 컨텐츠 코드
+	// TODO
+	return true;
 }
+
 
 /*
 SendBufferRef ServerPacketHandler::Make_S_TEST(uint64 id, uint32 hp, uint16 attack, vector<BuffData> buffs, wstring name)
