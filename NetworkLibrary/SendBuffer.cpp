@@ -53,7 +53,6 @@ SendBufferRef SendBufferChunk::Open(uint32 allocSize)
 
     _open = true;
 
-    // 
     return ObjectPool<SendBuffer>::MakeShared(shared_from_this(), Buffer(), allocSize);
 
     return SendBufferRef();
@@ -98,7 +97,7 @@ SendBufferRef SendBufferManager::Open(uint32 size)
 // 풀에서 메모리를 꺼내 쓰겠다는 의미
 SendBufferChunkRef SendBufferManager::Pop()
 {
-    cout << "Pop SENDBUFFERCHUNK" << endl;
+    // cout << "Pop SENDBUFFERCHUNK" << endl;
     WRITE_LOCK;
     if (_sendBufferChunks.empty() == false)
     {
@@ -119,6 +118,6 @@ void SendBufferManager::Push(SendBufferChunkRef buffer)
 
 void SendBufferManager::PushGlobal(SendBufferChunk* buffer)
 {
-    cout << "PushGlobal SENDBUFFERCHUNK" << endl;
+    // cout << "PushGlobal SENDBUFFERCHUNK" << endl;
     GSendBufferManager->Push(SendBufferChunkRef(buffer, PushGlobal));
 }

@@ -25,3 +25,15 @@ void Room::Broadcast(SendBufferRef sendBuffer)
 		player.second->ownerSession->Send(sendBuffer);
 	}
 }
+
+void Room::FlushJob()
+{
+	while (true)
+	{
+		JobRef job = _jobs.Pop();
+		if (job == nullptr)
+			break;
+
+		job->Execute();
+	}
+}

@@ -78,7 +78,10 @@ bool Handle_C_ENTER_GAME(PacketSessionRef& session, Protocol::C_ENTER_GAME& pkt)
 
 	// DB 접근은 최소화 해야함
 	PlayerRef player = gameSession->_players[index]; // READ_ONLY?
-	GRoom.Enter(player); // WRITE_LOCK
+
+	// 여기서 락을 걸지 않는가?
+	// -> 락을 굉장히 짧게 걸어주는 것
+	GRoom.PushJob(MakeShared<EnterJob>(GRoom, player));
 
 	Protocol::S_ENTER_GAME enterGamePkt;
 	enterGamePkt.set_success(true);
@@ -96,7 +99,7 @@ bool Handle_C_CHAT(PacketSessionRef& session, Protocol::C_CHAT& pkt)
 	chatPkt.set_msg(pkt.msg());
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(chatPkt);
 
-	GRoom.Broadcast(sendBuffer); // WRITE_LOCK
+	GRoom.PushJob(MakeShared<BroadcastJob>(GRoom, sendBuffer));
 	return true;
 }
 
