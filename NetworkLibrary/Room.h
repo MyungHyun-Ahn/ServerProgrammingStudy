@@ -3,11 +3,7 @@
 
 class Room
 {
-	friend class EnterJob;
-	friend class LeaveJob;
-	friend class BroadcastJob;
-
-private:
+public:
 	// 싱글 쓰레드 환경인 것처럼 코딩
 	void Enter(PlayerRef player);
 	void Leave(PlayerRef player);
@@ -19,6 +15,13 @@ public:
 
 	// 일감을 수행하는 함수
 	void FlushJob();
+
+	template<typename T, typename Ret, typename... Args>
+	void PushJob(Ret(T::*memFunc)(Args...), Args... args)
+	{
+		auto job = MakeShared<MemberJob<T, Ret, Args...>>(static_cast<T*>(this), memFunc, args...);
+		_jobs.Push(job);
+	}
 
 private:
 	USE_LOCK;

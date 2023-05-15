@@ -12,25 +12,37 @@
 #include "Job.h"
 #include "Room.h"
 
+void HealByValue(uint64 target, int32 value)
+{
+	cout << target << "한테 힐 " << value << "만큼 줌" << endl;
+}
+
+class Knight
+{
+public:
+	void HealMe(int32 value)
+	{
+		cout << "Heal Me! " << value << endl;
+	}
+};
+
 int main()
 {
-	/*
+	
 	// TEST JOB
 	{
-		// [일감 의뢰 내용] : 1번 유저한테 10만큼 힐을 줘라!
-		// 행동 : Heal
-		// 인자 : 1번 유저, 10이라는 힐량
-		
-		// 스택 메모리에 두는 것보다는 힙 메모리에 두는 것이 좋다.
-		// 테스트이므로 그냥 스택 메모리에서 사용
-		HealJob healJob;
-		healJob._target = 1;
-		healJob._healValue = 10;
+		FuncJob<void, uint64, int32> job(HealByValue, 100, 10);
 
-		// 나중에
-		healJob.Execute();
+		job.Execute();
 	}
-	*/
+
+	{
+		Knight k1;
+		// FuncJob<void, int32> job(k1.HealMe, 100); 안됨 - 멤버 함수 버전도 만들어 주어야 함
+		MemberJob job2(&k1, &Knight::HealMe, 10);
+		job2.Execute();
+	}
+	
 
 	// JOB
 
