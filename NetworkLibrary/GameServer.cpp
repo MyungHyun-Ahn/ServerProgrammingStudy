@@ -8,43 +8,76 @@
 #include "BufferWriter.h"
 #include "ClientPacketHandler.h"
 #include <tchar.h>
+#include <functional>
 #include "Protocol.pb.h"
 #include "Job.h"
 #include "Room.h"
+#include "Player.h"
 
-void HealByValue(uint64 target, int32 value)
+/*
+class Knight : public enable_shared_from_this<Knight>
 {
-	cout << target << "한테 힐 " << value << "만큼 줌" << endl;
-}
-
-class Knight
-{
-public:
 	void HealMe(int32 value)
 	{
-		cout << "Heal Me! " << value << endl;
+		_hp += value;
+		cout << "HealMe !" << endl;
 	}
+
+public:
+	void Test()
+	{
+		// 치명적인 오류 : 모든 대상으로 복사를 하는 경우 매우 위험
+		// 람다를 사용할 때는 명시적으로 사용할 것들을 표시
+		// this 포인터는 레퍼런스 카운트를 하지 않으므로
+		// shared_from_this를 사용
+
+		// C++에서 람다와 shared_ptr을 섞어쓰면 메모리 릭이 발생
+		// 사실은 잘못된 정보
+		// 자기 자신의 shared_ptr을 들고 있게 설계 -> 설계 자체의 문제(사이클 발생)
+		// 람다와는 아무런 관계가 없음
+
+		auto job = [self = shared_from_this()]()
+		{
+			self->HealMe(self->_hp); // 사실상 this->_hp로 작동, this까지 복사
+									 // Knight가 소멸되면 엉뚱한 메모리를 가리키게 됨
+		};
+	}
+
+private:
+	int32 _hp = 100;
 };
+*/
 
 int main()
 {
-	
-	// TEST JOB
+	/*
+	PlayerRef player = MakeShared<Player>();
+
+	// 함수 포인터에서 호출할 때는 Args를 튜플을 사용하여 하나씩 꺼내쓰는 형태
+	// 람다에서는 그것을 그냥 지원
+
+	// 단점 : C++과 람다가 궁합이 안맞는 부분이 있다.
+	// 캡쳐값 : = 모든 것을 복사
+	//          & 모든 것을 참조
+	// [player], [&player] : 하나하나 각각 지정 가능
+
+	// 만들자마자 바로 수행하면 문제가 없다.
+	// JobQueue의 동작 과정에서
+	// 캡쳐 값에 넣어준 값들이 반드시 유지가 되어야 수행된다.
+	// 캡쳐를 할 때는 Job이 유지될 동안은 객체를 꼭 보장해 주어야 함
+
+	// return void : 인자 void
+
+	std::function<void()> func = [self = GRoom, &player]() // [=] 람다 캡쳐 : functor와 굉장히 비슷
 	{
-		FuncJob<void, uint64, int32> job(HealByValue, 100, 10);
+		// cout << "Hello World" << endl;
+		HelloWorld(1, 2);
+		self->Enter(player);
+	};
 
-		job.Execute();
-	}
-
-	{
-		Knight k1;
-		// FuncJob<void, int32> job(k1.HealMe, 100); 안됨 - 멤버 함수 버전도 만들어 주어야 함
-		MemberJob job2(&k1, &Knight::HealMe, 10);
-		job2.Execute();
-	}
-	
-
-	// JOB
+	// 뒤늦게 func를 호출하면 실행
+	func();
+	*/
 
 	ClientPacketHandler::Init();
 
@@ -69,7 +102,7 @@ int main()
 
 	while (true)
 	{
-		GRoom.FlushJob();
+		GRoom->FlushJob();
 		this_thread::sleep_for(1ms);
 	}
 
