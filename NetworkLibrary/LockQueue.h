@@ -4,10 +4,10 @@ template<typename T>
 class LockQueue
 {
 public:
-	void Push(T job)
+	void Push(T item)
 	{
 		WRITE_LOCK;
-		_items.push(job);
+		_items.push(item);
 	}
 
 	T Pop()

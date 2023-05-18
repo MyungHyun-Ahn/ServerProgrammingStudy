@@ -78,7 +78,7 @@ private:
 		header->size = packetSize;
 		header->id = pktId;
 
-		ASSERT_CRASH(pkt.SerializePartialToArray(&header[1], dataSize));
+		ASSERT_CRASH(pkt.SerializeToArray(&header[1], dataSize));
 
 		sendBuffer->Close(packetSize);
 		return sendBuffer;

@@ -45,10 +45,6 @@ void Session::Send(SendBufferRef sendBuffer)
 	bool registerSend = false;
 
 	// 현재 RegisterSend가 걸리지 않은 상태라면 걸어준다.
-	WRITE_LOCK;
-
-	_sendQueue.push(sendBuffer);
-
 	/*
 	if (_sendRegistered == false)
 	{

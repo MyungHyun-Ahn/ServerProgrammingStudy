@@ -48,8 +48,8 @@ public:
     void            Close(uint32 writeSize);
 
     bool            IsOpen() { return _open; }
-    BYTE* Buffer() { return &_buffer[_usedSize]; }
-    uint32 FreeSize() { return static_cast<uint32>(_buffer.size()) - _usedSize; } // 유효 사이즈
+    BYTE*           Buffer() { return &_buffer[_usedSize]; }
+    uint32          FreeSize() { return static_cast<uint32>(_buffer.size()) - _usedSize; } // 유효 사이즈
 
 private:
 	Array<BYTE, SEND_BUFFER_CHUNK_SIZE>   _buffer = {};

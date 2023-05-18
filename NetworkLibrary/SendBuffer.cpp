@@ -54,8 +54,6 @@ SendBufferRef SendBufferChunk::Open(uint32 allocSize)
     _open = true;
 
     return ObjectPool<SendBuffer>::MakeShared(shared_from_this(), Buffer(), allocSize);
-
-    return SendBufferRef();
 }
 
 void SendBufferChunk::Close(uint32 writeSize)
