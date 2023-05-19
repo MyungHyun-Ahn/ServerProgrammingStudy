@@ -14,6 +14,7 @@
 #include "Room.h"
 #include "Player.h"
 
+
 /*
 class Knight : public enable_shared_from_this<Knight>
 {
@@ -48,6 +49,31 @@ private:
 };
 */
 
+enum
+{
+	WORKER_TICK = 64
+};
+
+void DoWorkerJob(ServerServiceRef& service)
+{
+	while (true)
+	{
+		LEndTickCount = ::GetTickCount64() + WORKER_TICK;
+
+		// 네트워크 입출력 처리 -> 인게임 로직까지 (패킷 핸들러에 의해)
+		service->GetIocpCore()->Dispatch(10); 
+		
+		// 일감이 없으면 빠져나와서 -> 게임 로직처리
+
+		// 예약된 일감 처리
+		ThreadManager::DistributeReserveJobs();
+
+		// 글로벌 큐
+		// 만능형 직원 (네트워크 처리 + 게임 로직 처리)
+		ThreadManager::DoGlobalQueueWork();
+	}
+}
+
 int main()
 {
 	/*
@@ -79,6 +105,10 @@ int main()
 	func();
 	*/
 
+	GRoom->DoTimer(1000, [] { cout << "Hello 1000" << endl; });
+	GRoom->DoTimer(2000, [] { cout << "Hello 2000" << endl; });
+	GRoom->DoTimer(3000, [] { cout << "Hello 3000" << endl; });
+
 	ClientPacketHandler::Init();
 
 	ServerServiceRef service = MakeShared<ServerService>(
@@ -91,14 +121,15 @@ int main()
 
 	for (int32 i = 0; i < 5; i++)
 	{
-		GThreadManager->Launch([=]()
+		GThreadManager->Launch([&service]()
 			{
-				while (true)
-				{
-					service->GetIocpCore()->Dispatch();
-				}
+				DoWorkerJob(service);
 			});
 	}
+
+
+	// 여기에 배치하면 메인 쓰레드가 처리
+	DoWorkerJob(service);
 
 	GThreadManager->Join();
 }

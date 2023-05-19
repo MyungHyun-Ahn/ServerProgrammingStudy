@@ -10,7 +10,7 @@
 // 이것을 일일히 만들기는 힘드니 공용으로 활용할 것들을
 // 상속하여 사용할 수 있도록하는 부모 클래스
 
-void JobQueue::Push(JobRef&& job)
+void JobQueue::Push(JobRef job, bool pushOnly)
 {
 	const int32 prevCount = _jobCount.fetch_add(1);
 	_jobs.Push(job); // WRITE_LOCK
@@ -19,7 +19,7 @@ void JobQueue::Push(JobRef&& job)
 	if (prevCount == 0)
 	{
 		// 이미 실행중인 JobQueue가 없으면 실행
-		if (LCurrentJobQueue == nullptr)
+		if (LCurrentJobQueue == nullptr && pushOnly == false)
 		{
 			Execute();
 		}

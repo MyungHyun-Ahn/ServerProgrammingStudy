@@ -17,8 +17,8 @@ void Room::Leave(PlayerRef player)
 
 void Room::Broadcast(SendBufferRef sendBuffer)
 {
-	for (auto& player : _players)
+	for (auto& p : _players)
 	{
-		player.second->ownerSession->Send(sendBuffer);
+		p.second->ownerSession->Send(sendBuffer);
 	}
 }
