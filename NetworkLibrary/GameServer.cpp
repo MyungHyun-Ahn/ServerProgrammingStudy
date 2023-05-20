@@ -14,6 +14,7 @@
 #include "Room.h"
 #include "Player.h"
 #include "DBConnectionPool.h"
+#include "DBBind.h"
 
 /*
 class Knight : public enable_shared_from_this<Knight>
@@ -122,7 +123,9 @@ int main()
 			CREATE TABLE [dbo].[Gold]					\
 			(											\
 				[id] INT NOT NULL PRIMARY KEY IDENTITY, \
-				[gold] INT NULL							\
+				[gold] INT NULL,						\
+				[name] NVARCHAR(50) NULL,				\
+				[createDate] DATETIME NULL				\
 			);";
 
 		DBConnection* dbConn = GDBConnectionPool->Pop();
@@ -134,6 +137,19 @@ int main()
 	for (int32 i = 0; i < 3; i++)
 	{
 		DBConnection* dbConn = GDBConnectionPool->Pop();
+
+		DBBind<3, 0> dbBind(*dbConn, L"INSERT INTO [dbo].[Gold]([gold], [name], [createDate]) VALUES(?, ?, ?)");
+
+		int32 gold = 100;
+		dbBind.BindParam(0, gold);
+		WCHAR name[100] = L"현이";
+		dbBind.BindParam(1, name);
+		TIMESTAMP_STRUCT ts = {2023, 5, 20};
+		dbBind.BindParam(2, ts);
+		
+		ASSERT_CRASH(dbBind.Execute());
+
+		/*
 		// 기존에 바인딩 된 정보 날림
 		dbConn->Unbind();
 
@@ -141,17 +157,49 @@ int main()
 		int32 gold = 100;
 		SQLLEN len = 0;
 
+		WCHAR name[100] = L"현이";
+		SQLLEN nameLen = 0;
+
+		TIMESTAMP_STRUCT ts = {};
+		ts.year = 2023;
+		ts.month = 5;
+		ts.day = 20;
+		SQLLEN tsLen = 0;
+
 		// 넘길 인자 바인딩
-		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+		ASSERT_CRASH(dbConn->BindParam(1, &gold, &len));
+		ASSERT_CRASH(dbConn->BindParam(2, name, &nameLen));
+		ASSERT_CRASH(dbConn->BindParam(3, &ts, &tsLen));
 
 		// SQL 실행
-		ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold]) VALUES(?)"));
+		ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold], [name], [createDate]) VALUES(?, ?, ?)"));
+		*/
+
 		GDBConnectionPool->Push(dbConn);
 	}
 
 	// Read
 	{
 		DBConnection* dbConn = GDBConnectionPool->Pop();
+
+		DBBind<1, 4> dbBind(*dbConn, L"SELECT id, gold, name, createDate FROM [dbo].[Gold] WHERE gold = (?)");
+
+		int32 gold = 100;
+		dbBind.BindParam(0, gold);
+
+		int32 outId = 0;
+		int32 outGold = 0;
+		WCHAR outName[100];
+		TIMESTAMP_STRUCT outDate = {};
+
+		dbBind.BindCol(0, OUT outId);
+		dbBind.BindCol(1, OUT outGold);
+		dbBind.BindCol(2, OUT outName);
+		dbBind.BindCol(3, OUT outDate);
+
+		ASSERT_CRASH(dbBind.Execute());
+
+		/*
 		// 기존에 바인딩 된 정보 날림
 		dbConn->Unbind();
 
@@ -160,24 +208,36 @@ int main()
 		SQLLEN len = 0;
 
 		// 넘길 인자 바인딩
-		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+		ASSERT_CRASH(dbConn->BindParam(1, &gold, &len));
 
 		int32 outId = 0;
 		SQLLEN outIdLen = 0;
-		ASSERT_CRASH(dbConn->BindCol(1, SQL_C_LONG, sizeof(outId), &outId, &outIdLen));
+		ASSERT_CRASH(dbConn->BindCol(1, &outId, &outIdLen));
 
 		int32 outGold = 0;
 		SQLLEN outGoldLen = 0;
-		ASSERT_CRASH(dbConn->BindCol(2, SQL_C_LONG, sizeof(outGold), &outGold, &outGoldLen));
+		ASSERT_CRASH(dbConn->BindCol(2, &outGold, &outGoldLen));
 
+		WCHAR outName[100];
+		SQLLEN outNameLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(3, outName, len32(outName), &outNameLen));
+
+		TIMESTAMP_STRUCT outDate = {};
+		SQLLEN outDateLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(4, &outDate, &outDateLen));
 		// SQL 실행
-		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold FROM [dbo].[Gold] WHERE gold = (?)"));
+		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold, name, createDate FROM [dbo].[Gold] WHERE gold = (?)"));
+		*/
 
+
+		wcout.imbue(locale("kor"));
 		// 데이터를 반복적으로 받아와야함
 		while (dbConn->Fetch())
 		{
-			cout << "Id: " << outId << " Gold : " << outGold << endl;
+			wcout << "Id: " << outId << " Gold : " << outGold << " Name : " << outName << endl;
+			wcout << "Date : " << outDate.year << "/" << outDate.month << "/" << outDate.day << endl;
 		}
+
 		GDBConnectionPool->Push(dbConn);
 	}
 
